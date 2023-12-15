@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="notesApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Заметки</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div ng-controller="NotesController as vm">
+    <h1>Замітки</h1>
+
+    <!-- Ввід заголовку та тексту замітки -->
+    <form id="top" ng-submit="vm.addOrUpdateNote()">
+        <input type="text" ng-model="vm.newNote.title" placeholder="Заголовок" required>
+        <textarea ng-model="vm.newNote.text" placeholder="Текст" required></textarea>
+        <hr>
+
+        <!-- Вибір кольору замітки -->
+        <h3>Оберіть колір:</h3>
+        <div id="choosecolor" ng-repeat="color in vm.colors">
+            <input type="radio" ng-model="vm.newNote.color" ng-value="color">
+            <span class="color" ng-style="{'background-color': color}">{{color}}</span>
+        </div>
+        <hr>
+
+        <!-- Поле для створення нової категорії користувачем -->
+        <div>
+            <h3>Створити нову категорію:</h3>
+            <input type="text" id="newCategory" ng-model="vm.newCategory" placeholder="Введіть назву категорії">
+            <button type="button" ng-click="vm.addNewCategory()">Створити категорію</button>
+        </div>
+        <hr>
+
+        <!-- Додавання категорій до замітки через чекбокси -->
+        <div>
+            <h3>Виберіть категорії:</h3>
+            <!-- Вивід дерева категорій -->
+            <div ng-repeat="(category, subcategories) in vm.categories">
+                <div class="category">
+                    <input type="checkbox" ng-model="vm.newNote.selectedCategories[category]" id="{{category}}">
+                    <label for="{{category}}">{{category}}</label>
+                    <button class="add-subcategory" ng-click="vm.addNewSubcategory(category)">+</button>
+                </div>
+                <!-- Якщо категорія має підкатегорії використовується шаблон для виводу підкатегорій-->
+                <!-- та перевірки їх на наявність власних підкатегорій -->
+                <div style="margin-left: 20px;" ng-if="subcategories">
+                    <div ng-include="'categoryTreeTemplate.html'" ng-init="subcategories=subcategories"></div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <!-- шаблон для виведення категорій та підкатегорій -->
+        <!-- Шаблон 'categoryTreeTemplate.html' -->
+        <script type="text/ng-template" id="categoryTreeTemplate.html">
+            <div ng-repeat="(subcategory, subsubcategories) in subcategories">
+                <!-- додавання підкатегорії до категорії -->
+                <div class="category">
+                    <input type="checkbox" ng-model="vm.newNote.selectedCategories[subcategory]" id="{{subcategory}}">
+                    <label for="{{subcategory}}">{{subcategory}}</label>
+                    <button class="add-subcategory" ng-click="vm.addNewSubcategory(subcategory)">+</button>
+                </div>
+                <!-- Якщо категорія має підкатегорії використовується шаблон для виводу підкатегорій-->
+                <!-- та перевірки їх на наявність власних підкатегорій -->
+                <div style="margin-left: 20px;" ng-if="subsubcategories">
+                    <div ng-include="'categoryTreeTemplate.html'" ng-init="subcategories=subsubcategories"></div>
+                </div>
+            </div>
+        </script>
+
+        <!-- Створення власних якрликів за посиланням -->
+        <div>
+            <h3>Створити новий ярлик:</h3>
+            <input type="text" id="newLabel" ng-model="vm.newLabel" placeholder="Введіть посилання на зображення">
+            <button type="button" ng-click="vm.addNewLabel()">Створити ярлик</button>
+        </div>
+        <hr>
+        <!-- Вибір ярликів для замітки -->
+        <h3>Оберіть ярлики:</h3>
+        <div  id="chooseLabels" ng-repeat="label in vm.labels">
+            <input type="checkbox" ng-model="vm.newNote.selectedLabels[label]" id="{{label}}">
+            <img ng-src="{{label}}" alt="{{label}}">
+        </div>
+
+        <!-- Створення або редагування замітки -->
+        <button type="submit" class="add-button">{{ vm.editMode ? 'Редагувати замітку' : 'Створити замітку' }}</button>
+    </form>
+
+    <!-- Виведення всіх заміток -->
+    <ul>
+        <li ng-repeat="note in vm.notes track by $index" ng-class="note.color">
+            <strong>#{{ $index + 1 }} - {{ note.title }}</strong>
+            <br>
+            <br>
+            {{ note.text }}
+            <br>
+            <br>
+            <span ng-show="note.categories && note.categories.length > 0">
+            Категорії:
+                <span ng-repeat="(category, isSelected) in note.selectedCategories" ng-if="isSelected">| {{category}} </span>
+                <span>|</span>
+            </span>
+            <br>
+            <span ng-show="note.selectedLabels">
+    Ярлики:
+    <img ng-repeat="(label, isSelected) in note.selectedLabels" ng-if="isSelected" ng-src="{{label}}" alt="{{label}}">
+            </span>
+            <br>
+            <br>
+            <button ng-click="vm.editNote(note)">Редагувати</button>
+            <button ng-click="vm.removeNote(note)">Видалити</button>
+        </li>
+    </ul>
+</div>
+
+<script src="notes.js"></script>
+
+</body>
+</html>
